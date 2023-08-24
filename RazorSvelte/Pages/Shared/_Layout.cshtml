@@ -1,0 +1,42 @@
+﻿@using System.Security.Claims
+@using Microsoft.IdentityModel.JsonWebTokens
+@{
+    var user = JsonSerializer.Serialize(new
+    {
+        isSigned = User.Identity?.IsAuthenticated,
+        name = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
+        email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+        timezone = User.Claims.FirstOrDefault(c => c.Type == "timezone")?.Value,
+        timestamp = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.AuthTime)?.Value
+    });
+}
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @Consts.Title</title>
+    <link href="~/style.css" asp-append-version="true" rel="stylesheet" />
+    @await RenderSectionAsync("HeadSection", required: false)
+    <script>
+    (function() {
+        var theme = localStorage.getItem("@Consts.ThemeKey");
+        if (!theme) {
+            theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            localStorage.setItem("@Consts.ThemeKey", theme);
+        }
+        document.getElementsByTagName("html")[0].dataset.bsTheme = theme;
+    })();
+    </script>
+</head>
+<body class="d-flex flex-column h-100">
+    @*
+        These hiddens are needed by the header component on each page.
+        Display basic login info in the header and make urls available to the client.
+    *@
+    <input id="user" type="hidden" value='@Html.Raw(user)' />
+    <input id="theme-key" type="hidden" value='@Consts.ThemeKey' />
+    <input id="error-key" type="hidden" value='@Consts.ErrorKey' />
+    <input id="title" type="hidden" value='@Consts.Title' />
+    @RenderBody()
+</body>
+</html>
